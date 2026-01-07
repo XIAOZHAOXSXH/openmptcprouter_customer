@@ -46,13 +46,18 @@ jobs:
         run: |
           chmod +x build.sh
           # Prepare sources, feeds, .config and build toolchain
-          # This ensures host tools (like libdeflate-gzip) are available
           ./build.sh tools/install toolchain/install
+
+      - name: Build Kernel
+        run: |
+          cd ${{ env.OMR_TARGET }}/${{ env.OMR_KERNEL }}/source
+          # Compile kernel first to generate .config and headers for kmods
+          make IGNORE_ERRORS=m target/linux/compile -j$(nproc) || make IGNORE_ERRORS=m target/linux/compile -j1 V=s
 
       - name: Build Packages
         run: |
           cd ${{ env.OMR_TARGET }}/${{ env.OMR_KERNEL }}/source
-          # Compile packages first
+          # Compile packages
           make IGNORE_ERRORS=m package/compile -j$(nproc) || make IGNORE_ERRORS=m package/compile -j1 V=s
           make IGNORE_ERRORS=m package/index -j$(nproc) || make IGNORE_ERRORS=m package/index -j1 V=s
 
