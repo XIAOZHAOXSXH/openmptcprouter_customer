@@ -1107,6 +1107,13 @@ fi
 #fi
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
+
+# Fix: Remove conflicting dnsmasq patch that causes build failure on 6.1 kernel
+if [ -f package/network/services/dnsmasq/patches/999-remove-nftset-logs.patch ]; then
+    echo "Removing conflicting dnsmasq patch: 999-remove-nftset-logs.patch"
+    rm -f package/network/services/dnsmasq/patches/999-remove-nftset-logs.patch
+fi
+
 echo "Done"
 
 if [ ! -f "../../../$OMR_TARGET_CONFIG" ] || [ "$NOT_SUPPORTED" = "1" ]; then
