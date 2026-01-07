@@ -210,7 +210,7 @@ fi
 
 cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<EOF
 -----------------------------------------------------
- PACKAGE:     $OMR_DIST
+ PACKAGE:     FusionGateway
  VERSION:     $OMR_RELEASE
  TARGET:      $OMR_TARGET
  ARCH:        $OMR_REAL_TARGET
@@ -297,7 +297,7 @@ if [ -f $OMR_TARGET_CONFIG ]; then
 	cat "$OMR_TARGET_CONFIG" config -> "$OMR_TARGET/${OMR_KERNEL}/source/.config" <<-EOF
 	CONFIG_IMAGEOPT=y
 	CONFIG_VERSIONOPT=y
-	CONFIG_VERSION_DIST="$OMR_DIST"
+	CONFIG_VERSION_DIST="FusionGateway"
 	CONFIG_VERSION_REPO="$OMR_REPO"
 	CONFIG_VERSION_NUMBER="${OMR_RELEASE}-${OMR_KERNEL}"
 	EOF
@@ -305,7 +305,7 @@ else
 	cat config -> "$OMR_TARGET/${OMR_KERNEL}/source/.config" <<-EOF
 	CONFIG_IMAGEOPT=y
 	CONFIG_VERSIONOPT=y
-	CONFIG_VERSION_DIST="$OMR_DIST"
+	CONFIG_VERSION_DIST="FusionGateway"
 	CONFIG_VERSION_REPO="$OMR_REPO"
 	CONFIG_VERSION_NUMBER="${OMR_RELEASE}-${OMR_FEED_SRC}-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
 	EOF

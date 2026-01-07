@@ -1,0 +1,30 @@
+{
+	"guest": {
+		"description": "Guest user access role",
+		"read": {
+			"ubus": {
+				"system": [ "board", "info", "validate_firmware_image" ],
+				"network.interface": [ "dump", "status" ],
+				"network.device": [ "status" ],
+				"luci": [ "getFeatures", "getInitList", "getLocaltime", "getTimezones", "getLEDs", "getUSBDevices", "getSwarmInfo", "getConntrackList", "getRealtimeStats", "getBackupList" ],
+				"file": {
+					"/tmp/dhcp.leases": [ "read" ],
+					"/var/stat/": [ "list" ]
+				}
+			},
+			"uci": [ "network", "system", "luci", "firewall" ]
+		},
+		"write": {
+			"ubus": {
+				"system": [ "reboot", "sysupgrade" ],
+				"luci": [ "setLocaltime", "setInitAction", "setBackup" ],
+				"uci": [ "add", "set", "delete", "rename", "reorder", "commit" ],
+				"file": [ "exec" ]
+			},
+			"file": {
+				"/sbin/poweroff": [ "exec" ]
+			},
+			"uci": [ "network", "firewall" ]
+		}
+	}
+}

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>融合网关 - 访客中心</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.45/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div id="app" v-cloak>
+        <div class="login-container" v-if="!isLoggedIn">
+            <div class="login-box">
+                <div class="brand-logo">FUSION</div>
+                <h1>融合网关</h1>
+                <div class="form-group">
+                    <input type="text" v-model="loginForm.username" placeholder="访客账号" @keyup.enter="login">
+                </div>
+                <div class="form-group">
+                    <input type="password" v-model="loginForm.password" placeholder="密码" @keyup.enter="login">
+                </div>
+                <button @click="login" :disabled="loading" class="primary-btn">
+                    {{ loading ? '验证中...' : '登 录' }}
+                </button>
+                <p class="error-msg" v-if="errorMsg">{{ errorMsg }}</p>
+            </div>
+        </div>
+
+        <div class="main-container" v-else>
+            <nav class="sidebar">
+                <div class="logo">融合网关</div>
+                <ul>
+                    <li :class="{ active: currentView === 'dashboard' }" @click="currentView = 'dashboard'">运行状态</li>
+                    <li :class="{ active: currentView === 'network' }" @click="currentView = 'network'">网络接口</li>
+                    <li :class="{ active: currentView === 'firewall' }" @click="currentView = 'firewall'">端口转发</li>
+                    <li :class="{ active: currentView === 'system' }" @click="currentView = 'system'">系统管理</li>
+                </ul>
+                <div class="user-info">
+                    <span>{{ session.username }}</span>
+                    <a href="#" @click.prevent="logout">安全退出</a>
+                </div>
+            </nav>
+            <main class="content">
+                <!-- Dashboard -->
+                <div v-if="currentView === 'dashboard'" class="view-container">
+                    <h2>仪表盘</h2>
+                    <div class="cards">
+                        <div class="card">
+                            <h3>系统运行时间</h3>
+                            <p>{{ systemInfo.uptime }}</p>
+                        </div>
+                        <div class="card">
+                            <h3>CPU 平均负载</h3>
+                            <p>{{ systemInfo.load }}</p>
+                        </div>
+                        <div class="card">
+                            <h3>内存占用 (已用/总计)</h3>
+                            <p>{{ systemInfo.memory }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Network -->
+                <div v-if="currentView === 'network'" class="view-container">
+                    <h2>网络接口状态</h2>
+                    <div class="data-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>接口</th>
+                                    <th>状态</th>
+                                    <th>IP 地址</th>
+                                    <th>设备</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(iface, name) in interfaces" :key="name">
+                                    <td>{{ name.toUpperCase() }}</td>
+                                    <td>
+                                        <span :class="iface.up ? 'status-up' : 'status-down'">
+                                            {{ iface.up ? '在线' : '离线' }}
+                                        </span>
+                                    </td>
+                                    <td>{{ iface.ipaddr }}</td>
+                                    <td>{{ iface.macaddr }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Firewall -->
+                <div v-if="currentView === 'firewall'" class="view-container">
+                    <h2>端口转发 (DNAT)</h2>
+                    <div class="add-form card">
+                        <h3>新增转发规则</h3>
+                        <div class="form-row">
+                            <input type="text" v-model="newForward.name" placeholder="规则名称">
+                            <select v-model="newForward.proto">
+                                <option value="tcp">TCP</option>
+                                <option value="udp">UDP</option>
+                                <option value="tcpudp">TCP+UDP</option>
+                            </select>
+                            <input type="text" v-model="newForward.src_port" placeholder="外部端口">
+                            <input type="text" v-model="newForward.dest_ip" placeholder="内部 IP">
+                            <input type="text" v-model="newForward.dest_port" placeholder="内部端口">
+                            <button @click="addForward" class="small-btn">添加</button>
+                        </div>
+                    </div>
+                    <div class="data-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>名称</th>
+                                    <th>协议</th>
+                                    <th>外部端口</th>
+                                    <th>转发至</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="rule in portForwards" :key="rule.name">
+                                    <td>{{ rule.name || '未命名' }}</td>
+                                    <td>{{ rule.proto }}</td>
+                                    <td>{{ rule.src_dport }}</td>
+                                    <td>{{ rule.dest_ip }}:{{ rule.dest_port }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- System -->
+                <div v-if="currentView === 'system'" class="view-container">
+                    <h2>系统维护</h2>
+                    <div class="cards">
+                        <div class="card action-card">
+                            <h3>配置备份</h3>
+                            <p>下载当前系统配置归档</p>
+                            <button @click="backup" class="secondary-btn">立即备份</button>
+                        </div>
+                        <div class="card action-card">
+                            <h3>固件升级</h3>
+                            <p>上传并刷写新的固件镜像</p>
+                            <button @click="sysupgrade" class="secondary-btn">前往升级</button>
+                        </div>
+                        <div class="card action-card">
+                            <h3>重启设备</h3>
+                            <p>重新启动网关系统</p>
+                            <button @click="reboot" class="danger-btn">执行重启</button>
+                        </div>
+                        <div class="card action-card">
+                            <h3>安全关机</h3>
+                            <p>停止运行并关闭电源</p>
+                            <button @click="shutdown" class="danger-btn">立即关机</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+	"luci-app-fusion-manager": {
+		"description": "Grant access to Fusion Gateway Manager LuCI module",
+		"read": {
+			"cgi-io": [ "exec" ],
+			"uci": [ "fusion-manager" ]
+		},
+		"write": {
+			"cgi-io": [ "exec" ],
+			"uci": [ "fusion-manager" ]
+		}
+	}
+}
