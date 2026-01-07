@@ -1,0 +1,68 @@
+name: Build Fusion Gateway
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/fusion-gateway
+      - develop
+      - main
+
+env:
+  OMR_TARGET: bpi-r4
+  OMR_KERNEL: 6.1
+  OMR_LOG: yes
+  OMR_KEEPBIN: yes
+
+jobs:
+  build:
+    name: Build BPI-R4 Firmware
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v3
+
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc-s1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler python3-pyelftools llvm clang ccache ecj fastjar file java-propose-classpath libncursesw5-dev python2 python2.7-dev python3 python3-distutils python3-setuptools python3-dev rsync swig time xsltproc
+
+      - name: Prepare Build Environment
+        run: |
+          chmod +x build.sh
+          # Prepare sources, feeds and .config
+          ONLY_PREPARE=yes ./build.sh
+
+      - name: Build Packages
+        run: |
+          cd ${{ env.OMR_TARGET }}/${{ env.OMR_KERNEL }}/source
+          # Compile packages first
+          make IGNORE_ERRORS=m package/compile -j$(nproc) || make IGNORE_ERRORS=m package/compile -j1 V=s
+          make IGNORE_ERRORS=m package/index -j$(nproc) || make IGNORE_ERRORS=m package/index -j1 V=s
+
+      - name: Build Firmware Image
+        run: |
+          cd ${{ env.OMR_TARGET }}/${{ env.OMR_KERNEL }}/source
+          # Build target image
+          make IGNORE_ERRORS=m target/install -j$(nproc) || make IGNORE_ERRORS=m target/install -j1 V=s
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fusion-gateway-${{ env.OMR_TARGET }}-k${{ env.OMR_KERNEL }}
+          path: |
+            ${{ env.OMR_TARGET }}/${{ env.OMR_KERNEL }}/source/bin/targets/
+            !${{ env.OMR_TARGET }}/${{ env.OMR_KERNEL }}/source/bin/targets/**/packages/
+          if-no-files-found: error
