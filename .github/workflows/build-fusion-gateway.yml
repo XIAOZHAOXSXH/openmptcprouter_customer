@@ -13,6 +13,7 @@ env:
   OMR_KERNEL: 6.1
   OMR_LOG: yes
   OMR_KEEPBIN: yes
+  OMR_RELEASE: "0.60"
 
 jobs:
   build:
@@ -22,6 +23,8 @@ jobs:
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Free Disk Space
         uses: jlumbroso/free-disk-space@main
@@ -42,8 +45,9 @@ jobs:
       - name: Prepare Build Environment
         run: |
           chmod +x build.sh
-          # Prepare sources, feeds and .config
-          ONLY_PREPARE=yes ./build.sh
+          # Run build.sh with 'defconfig' to fetch sources, patches and generate .config
+          # This avoids the full build triggering inside build.sh
+          ./build.sh defconfig
 
       - name: Build Packages
         run: |
