@@ -1071,6 +1071,12 @@ cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
 
+# Fix mptcpd compilation on kernel 6.1+
+if [ -d feeds/openmptcprouter/mptcpd ]; then
+    mkdir -p feeds/openmptcprouter/mptcpd/patches
+    cp ../../../patches/mptcpd-fix-events.patch feeds/openmptcprouter/mptcpd/patches/999-fix-events.patch
+fi
+
 #cd -
 #echo "Checking if fullconenat-luci patch is set or not"
 ##if ! patch -Rf -N -p1 -s --dry-run < patches/fullconenat-luci.patch; then

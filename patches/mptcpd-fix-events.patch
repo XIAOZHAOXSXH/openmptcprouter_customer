@@ -1,0 +1,16 @@
+--- a/src/path_manager.c
++++ b/src/path_manager.c
+@@ -659,11 +659,11 @@ static void handle_mptcp_event(struct l_signal *signal,
+         case MPTCP_EVENT_SUB_ESTABLISHED:
+         case MPTCP_EVENT_SUB_PRIORITY:
+                 break;
+-        case MPTCP_EVENT_LISTENER_CREATED:
++        case MPTCP_EVENT_CREATED:
+                 handle_listener_created(pm, event);
+                 break;
+-        case MPTCP_EVENT_LISTENER_CLOSED:
++        case MPTCP_EVENT_SUB_CLOSED:
+                 handle_listener_closed(pm, event);
+                 break;
+         default:
+                 l_warn("Unknown MPTCP event type: %d", event->type);
