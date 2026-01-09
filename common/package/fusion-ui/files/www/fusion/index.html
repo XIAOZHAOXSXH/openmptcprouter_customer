@@ -135,6 +135,11 @@
                     <h2>系统维护</h2>
                     <div class="cards">
                         <div class="card action-card">
+                            <h3>重启设备</h3>
+                            <p>重新启动网关系统</p>
+                            <button @click="reboot" class="danger-btn">执行重启</button>
+                        </div>
+                        <div class="card action-card">
                             <h3>配置备份</h3>
                             <p>下载当前系统配置归档</p>
                             <button @click="backup" class="secondary-btn">立即备份</button>
@@ -143,11 +148,6 @@
                             <h3>固件升级</h3>
                             <p>上传并刷写新的固件镜像</p>
                             <button @click="sysupgrade" class="secondary-btn">前往升级</button>
-                        </div>
-                        <div class="card action-card">
-                            <h3>重启设备</h3>
-                            <p>重新启动网关系统</p>
-                            <button @click="reboot" class="danger-btn">执行重启</button>
                         </div>
                         <div class="card action-card">
                             <h3>安全关机</h3>
