@@ -1,12 +1,19 @@
 --- a/src/path_manager.c
 +++ b/src/path_manager.c
-@@ -662,10 +662,10 @@
+@@ -798,16 +798,6 @@
+ 	case MPTCP_EVENT_SUB_PRIORITY:
+ 		handle_priority_changed(&attrs, pm);
+ 		break;
+-
+-#ifdef HAVE_UPSTREAM_KERNEL
 -	case MPTCP_EVENT_LISTENER_CREATED:
-+	case MPTCP_EVENT_CREATED:
- 		handle_listener_created(pm, event);
- 		break;
+-		handle_listener_created(&attrs, pm);
+-		break;
+-
 -	case MPTCP_EVENT_LISTENER_CLOSED:
-+	case MPTCP_EVENT_SUB_CLOSED:
- 		handle_listener_closed(pm, event);
- 		break;
+-		handle_listener_closed(&attrs, pm);
+-		break;
+-#endif  // HAVE_UPSTREAM_KERNEL
+ 
  	default:
+ 		l_error("Unhandled MPTCP event: %d", cmd);
