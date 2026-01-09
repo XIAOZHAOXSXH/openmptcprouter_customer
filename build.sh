@@ -1071,10 +1071,17 @@ cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
 
-# Fix mptcpd compilation on kernel 6.1+
-if [ -d feeds/openmptcprouter/mptcpd ]; then
-    mkdir -p feeds/openmptcprouter/mptcpd/patches
-    cp ../../../patches/mptcpd-fix-events.patch feeds/openmptcprouter/mptcpd/patches/999-fix-events.patch
+# Fix mptcpd compilation on kernel 6.1+ by injecting sed command into Makefile
+if [ -f feeds/openmptcprouter/mptcpd/Makefile ]; then
+    # Inject Build/Prepare to replace legacy MPTCP event macros
+    # We use sed to insert before the BuildPackage call
+    sed -i '/\$(eval \$(call BuildPackage/i \
+define Build/Prepare\
+	$(call Build/Prepare/Default)\
+	$(SED) "s/MPTCP_EVENT_LISTENER_CREATED/MPTCP_EVENT_CREATED/g" $(PKG_BUILD_DIR)/src/path_manager.c\
+	$(SED) "s/MPTCP_EVENT_LISTENER_CLOSED/MPTCP_EVENT_SUB_CLOSED/g" $(PKG_BUILD_DIR)/src/path_manager.c\
+endef\
+' feeds/openmptcprouter/mptcpd/Makefile
 fi
 
 #cd -
